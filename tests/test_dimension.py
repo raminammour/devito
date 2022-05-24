@@ -1178,6 +1178,27 @@ class TestConditionalDimension(object):
         iterations = [i for i in FindNodes(Iteration).visit(op) if i.dim is not time]
         assert all(i.is_Affine for i in iterations)
 
+    def test_default_arguments(self):
+        nt = 5
+        grid = Grid(shape=(10, 10))
+        time = grid.time_dim
+
+        factor = Constant(name='factor', dtype=np.int32, value=2)
+        t_sub = ConditionalDimension('t_sub', parent=time, factor=factor)
+
+        f = TimeFunction(name='f', grid=grid, save=nt, time_dim=t_sub)
+
+        eqn = Eq(f.forward, f + 1.)
+
+        op = Operator(eqn)
+
+        # NOTE: an extra -1 because of `f.forward` which further restrict
+        # the max point
+        assert op.arguments()[time.max_name] == nt*factor.value - 1 - 1
+
+        op()
+        assert np.all(f.data[i] == i for i in range(nt))
+
 
 class TestMashup(object):
 

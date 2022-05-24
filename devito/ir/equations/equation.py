@@ -32,7 +32,7 @@ class IREq(sympy.Eq):
 
     @cached_property
     def dimensions(self):
-        return set(self.ispace.dimensions)
+        return set(self.ispace.dimensions) | set(self.conditionals)
 
     @property
     def implicit_dims(self):

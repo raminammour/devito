@@ -798,6 +798,39 @@ class ConditionalDimension(DerivedDimension):
             pass
         return retval
 
+    def _arg_values(self, interval, grid, args=None, **kwargs):
+        # We try to infer a value for our parent Dimension, should it not
+        # be available yet. This is best-effort -- we do not intend to cover
+        # every possible use case
+        n = self.parent.max_name
+        if n in args:
+            return {}
+
+        # If a user-override, nothing to do
+        try:
+            return {n: kwargs[n]}
+        except KeyError:
+            pass
+
+        # Conditions can virtually be anything, making it impossible to derive
+        # a sensible argument value
+        if self.condition is not None:
+            return {}
+
+        try:
+            size = args[self.size_name]
+        except KeyError:
+            return {}
+        if is_integer(self.factor):
+            factor = self.factor
+        else:
+            try:
+                factor = args[self.factor.name]
+            except (KeyError, AttributeError):
+                return {}
+
+        return {n: size*factor - 1 -  max(interval.upper, 0)}
+
     # Pickling support
     _pickle_kwargs = DerivedDimension._pickle_kwargs + ['factor', 'condition', 'indirect']
 
