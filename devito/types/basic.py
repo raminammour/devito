@@ -1,6 +1,6 @@
 import abc
-from collections import namedtuple
-from ctypes import POINTER, _Pointer
+from collections import namedtuple, OrderedDict
+from ctypes import POINTER, _Pointer, c_void_p
 from functools import reduce
 from operator import mul
 
@@ -929,7 +929,9 @@ class AbstractFunction(sympy.Function, Basic, Cached, Pickable, Evaluable):
         return self._name
 
     @property
-    def _C_type_qualifier(self):
+    def _C_type_data_qualifier(self):
+        mapper = OrderedDict([(i, ct) for i, ct in self._C_ctype._type_._fields_])
+        assert mapper['data'] is c_void_p
         return 'restrict'
 
     @property
@@ -1293,7 +1295,7 @@ class IndexedBase(sympy.IndexedBase, Basic, Pickable):
 class IndexedData(IndexedBase):
 
     @property
-    def _C_type_qualifier(self):
+    def _C_type_data_qualifier(self):
         return 'restrict'
 
     pass
