@@ -1519,24 +1519,20 @@ class AffineIndexAccessFunction(IndexAccessFunction):
 
     def __new__(cls, *args, **kwargs):
         d = 0
-        sd = 0
+        sds = set()
         ofs_items = []
         for a in args:
             if isinstance(a, StencilDimension):
-                if sd != 0:
-                    return sympy.Add(*args, **kwargs)
-                sd = a
+                sds.add(a)
             elif isinstance(a, Dimension):
                 d = cls._separate_dims(d, a, ofs_items)
                 if d is None:
                     return sympy.Add(*args, **kwargs)
             elif isinstance(a, AffineIndexAccessFunction):
-                if sd != 0 and a.sd != 0:
-                    return sympy.Add(*args, **kwargs)
                 d = cls._separate_dims(d, a.d, ofs_items)
                 if d is None:
                     return sympy.Add(*args, **kwargs)
-                sd = a.sd
+                sds.update(a.sds)
                 ofs_items.append(a.ofs)
             else:
                 ofs_items.append(a)
@@ -1545,12 +1541,12 @@ class AffineIndexAccessFunction(IndexAccessFunction):
         if not all(is_integer(i) or i.is_Symbol for i in ofs.free_symbols):
             return sympy.Add(*args, **kwargs)
 
-        obj = IndexAccessFunction.__new__(cls, d, ofs, sd)
+        obj = IndexAccessFunction.__new__(cls, d, ofs, *sds)
 
         if isinstance(obj, AffineIndexAccessFunction):
             obj.d = d
             obj.ofs = ofs
-            obj.sd = sd
+            obj.sds = frozenset(sds)
         else:
             # E.g., SymPy simplified it to Zero or something else
             pass

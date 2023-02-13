@@ -27,7 +27,7 @@ class TestIndexAccessFunction(object):
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
         assert expr.ofs == 1
-        assert expr.sd == 0
+        assert not expr.sds
 
         s0 = Symbol(name='s0', dtype=np.int32)
         s1 = Symbol(name='s1', dtype=np.int32)
@@ -37,7 +37,7 @@ class TestIndexAccessFunction(object):
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
         assert expr.ofs == s0 + s1 + 1
-        assert expr.sd == 0
+        assert not expr.sds
 
     def test_reversed(self):
         d = Dimension(name='x')
@@ -47,14 +47,14 @@ class TestIndexAccessFunction(object):
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
         assert expr.ofs == 1
-        assert expr.sd == 0
+        assert not expr.sds
 
         expr = d.symbolic_max + d
 
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
         assert expr.ofs is d.symbolic_max
-        assert expr.sd == 0
+        assert not expr.sds
 
     def test_non_affine(self):
         grid = Grid(shape=(3,))
@@ -75,7 +75,7 @@ class TestIndexAccessFunction(object):
 
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
-        assert expr.sd is sd
+        assert expr.sds == {sd}
         assert expr.ofs == 1
 
         s = Symbol(name='s')
@@ -84,7 +84,16 @@ class TestIndexAccessFunction(object):
 
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
-        assert expr.sd is sd
+        assert expr.sds == {sd}
+        assert expr.ofs == 1 + s
+
+        sd1 = StencilDimension('j', 0, 1)
+
+        expr = sd + d + 1 + s + sd1
+
+        assert isinstance(expr, AffineIndexAccessFunction)
+        assert expr.d is d
+        assert expr.sds == {sd, sd1}
         assert expr.ofs == 1 + s
 
     def test_sub(self):
@@ -103,7 +112,7 @@ class TestIndexAccessFunction(object):
 
         assert isinstance(expr, AffineIndexAccessFunction)
         assert expr.d is d
-        assert expr.sd is sd
+        assert expr.sds == {sd}
         assert expr.ofs == -1 - s
 
 
