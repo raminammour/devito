@@ -15,7 +15,7 @@ from devito.types import Symbol
 __all__ = ['CondEq', 'CondNe', 'IntDiv', 'CallFromPointer', 'FieldFromPointer',  # noqa
            'FieldFromComposite', 'ListInitializer', 'Byref', 'IndexedPointer', 'Cast',
            'DefFunction', 'InlineIf', 'Keyword', 'String', 'Macro', 'MacroArgument',
-           'CustomType', 'Deref', 'INT', 'FLOAT', 'DOUBLE', 'VOID',
+           'CustomType', 'Deref', 'ExprProperty', 'INT', 'FLOAT', 'DOUBLE', 'VOID',
            'Null', 'SizeOf', 'rfunc', 'cast_mapper', 'BasicWrapperMixin']
 
 
@@ -503,6 +503,31 @@ class MacroArgument(sympy.Symbol):
         return "(%s)" % self.name
 
     __repr__ = __str__
+
+
+class ExprProperty(sympy.Expr, Pickable):
+
+    def __new__(cls, arg, evaluate=False, **kwargs):
+        return super().__new__(cls, arg, **kwargs)
+
+    @property
+    def arg(self):
+        return self.args[0]
+
+    def __str__(self):
+        return self.arg.__str__()
+
+    def __repr__(self):
+        return "%s(%s)" % (self.__class__.__name__, self.arg.__repr__())
+
+    def _sympystr(self, printer):
+        return str(self)
+
+    def _hashable_content(self):
+        return (super()._hashable_content() +
+                tuple(getattr(self, i) for i in self.__rkwargs__))
+
+    func = Pickable._rebuild
 
 
 class DefFunction(Function, Pickable):

@@ -219,6 +219,9 @@ class CodePrinter(C99CodePrinter):
             func_name += 'f'
         return '%s(%s)' % (func_name, self._print(*expr.args))
 
+    def _print_ExprProperty(self, expr):
+        return self._print(expr.arg)
+
     def _print_Fallback(self, expr):
         return expr.__str__()
 
