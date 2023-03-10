@@ -99,9 +99,6 @@ def _lower_index_derivatives_core(expr, c, weights, seen, sregistry):
 
     name = sregistry.make_name(prefix='r')
     s = Symbol(name=name, dtype=c.dtype)
-    expr0 = Eq(s, 0.)
-    ispace1 = ispace.project(lambda d: d is not dims[-1])
-    processed.insert(0, c.rebuild(exprs=expr0, ispace=ispace1))
 
     # Track IndexDerivative to avoid intra-Cluster duplicates
     seen[expr] = s
@@ -109,7 +106,18 @@ def _lower_index_derivatives_core(expr, c, weights, seen, sregistry):
     # Transform e.g. `w[i0] -> w[i0 + 2]` for alignment with the
     # StencilDimensions starting points
     subs = {expr.weights: expr.weights.subs(d, d - d._min) for d in dims}
-    expr1 = Inc(s, uxreplace(expr.expr, subs))
-    processed.append(c.rebuild(exprs=expr1, ispace=ispace))
+    expr = expr.subs(subs)
+
+    from itertools import product
+    values = product(*[list(d.range) for d in expr.dimensions])
+    terms = []
+    for i in values:
+        mapper = dict(zip(expr.dimensions, i))
+        terms.append(expr.expr.xreplace(mapper))
+
+    expr1 = Eq(s, sum(terms))
+    ispace1 = ispace.project(lambda d: d is not dims[-1])
+
+    processed.append(c.rebuild(exprs=expr1, ispace=ispace1))
 
     return s, processed

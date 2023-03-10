@@ -568,7 +568,10 @@ class IndexSum(DifferentiableOp):
         return self._dimensions
 
     def _evaluate(self, **kwargs):
-        expr = self.expr._evaluate(**kwargs)
+        try:
+            expr = self.expr._evaluate(**kwargs)
+        except AttributeError:
+            expr = self.expr
 
         if not kwargs.get('expand', True):
             return self.func(expr, self.dimensions)
