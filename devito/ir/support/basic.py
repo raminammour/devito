@@ -595,26 +595,31 @@ class Dependence(object):
         # vector, it is guaranteed that the iteration space is the same
         return all(is_integer(i) for i in self.distance)
 
-    @cached_property
+    @property
     def is_irregular(self):
         return not self.is_regular
 
-    @cached_property
+    @property
     def is_lex_positive(self):
         """True if the source preceeds the sink, False otherwise."""
         return self.source.timestamp < self.sink.timestamp
 
-    @cached_property
+    @property
     def is_lex_equal(self):
         """True if the source has same timestamp as the sink, False otherwise."""
         return self.source.timestamp == self.sink.timestamp
 
-    @cached_property
+    @property
+    def is_lex_ne(self):
+        """True if the source's and sink's timestamps differ, False otherwise."""
+        return self.source.timestamp != self.sink.timestamp
+
+    @property
     def is_lex_negative(self):
         """True if the sink preceeds the source, False otherwise."""
         return self.source.timestamp > self.sink.timestamp
 
-    @cached_property
+    @property
     def is_lex_non_stmt(self):
         """
         True if either the source or the sink are from non-statements, False otherwise.
