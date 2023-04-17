@@ -488,6 +488,21 @@ class Symbol(AbstractSymbol, Cached):
 
     __hash__ = Cached.__hash__
 
+    def __init_finalize__(self, *args, **kwargs):
+        super().__init_finalize__(*args, **kwargs)
+
+        self._liveness = kwargs.get('liveness')
+        assert self._liveness in ['eager', 'lazy', None]
+
+    @property
+    def _mem_internal_eager(self):
+        #TODO: factorize all liveness code...
+        return self._liveness == 'eager'
+
+    @property
+    def _mem_internal_lazy(self):
+        return self._liveness == 'lazy'
+
 
 class DataSymbol(AbstractSymbol, Uncached):
 

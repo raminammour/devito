@@ -328,11 +328,14 @@ class DataManager(object):
         storage = Storage()
         defines = FindSymbols('defines-aliases').visit(iet)
 
-        for i in FindSymbols().visit(iet):
+        for i in FindSymbols('basics|symbolics').visit(iet):
             if i in defines:
                 continue
             elif i.is_LocalObject:
                 self._alloc_object_on_low_lat_mem(iet, i, storage)
+            elif i.is_Symbol:
+                if i._mem_internal_eager:
+                    self._alloc_symbol_on_low_lat_mem(iet, i, storage)
             elif i.is_Array or i.is_Bundle:
                 if i._mem_heap:
                     if i._mem_host:

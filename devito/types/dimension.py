@@ -183,6 +183,7 @@ class Dimension(ArgProvider):
 
     @property
     def is_const(self):
+        #TODO: probably droppable as now we inherit _is_const via __init_finalize__
         return False
 
     @property
@@ -353,6 +354,8 @@ class BasicDimension(Dimension, Symbol):
         return Symbol.__new__(cls, *args, **kwargs)
 
     def __init_finalize__(self, name, spacing=None, **kwargs):
+        super().__init_finalize__(name, **kwargs)
+
         self._spacing = spacing or Spacing(name='h_%s' % name, is_const=True)
 
 
@@ -459,6 +462,9 @@ class DerivedDimension(BasicDimension):
 
     def __init_finalize__(self, name, parent):
         assert isinstance(parent, Dimension)
+
+        super().__init_finalize__(name)
+
         self._parent = parent
         # Inherit time/space identifiers
         self.is_Time = parent.is_Time
@@ -550,6 +556,7 @@ class SubDimension(DerivedDimension):
 
     def __init_finalize__(self, name, parent, left, right, thickness, local, **kwargs):
         super().__init_finalize__(name, parent)
+
         self._interval = sympy.Interval(left, right)
         self._thickness = Thickness(*thickness)
         self._local = local
@@ -1348,7 +1355,9 @@ class StencilDimension(BasicDimension):
     __rargs__ = BasicDimension.__rargs__ + ('_min', '_max')
 
     def __init_finalize__(self, name, _min, _max, spacing=None, **kwargs):
-        self._spacing = sympy.sympify(spacing) or sympy.S.One
+        spacing = sympy.sympify(spacing) or sympy.S.One
+
+        super().__init_finalize__(name, spacing=spacing)
 
         if not is_integer(_min):
             raise ValueError("Expected integer `min` (got %s)" % _min)

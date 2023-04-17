@@ -174,6 +174,7 @@ class LocalObject(AbstractObject):
     __rkwargs__ = ('cargs', 'liveness')
 
     def __init__(self, name, cargs=None, **kwargs):
+        #TODO: call super()...
         self.name = name
         self.cargs = as_tuple(cargs)
 
