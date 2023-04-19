@@ -11,7 +11,7 @@ from devito.ir import Expression, FindNodes
 from devito.symbolics import (retrieve_functions, retrieve_indexed, evalrel,  # noqa
                               CallFromPointer, Cast, FieldFromPointer,
                               FieldFromComposite, IntDiv, ccode, uxreplace)
-from devito.types import Array, LocalObject, Object, Symbol as dSymbol
+from devito.types import Array, FIndexed, LocalObject, Object, Symbol as dSymbol  # noqa
 
 
 def test_float_indices():
@@ -333,6 +333,7 @@ def test_solve_time():
     ('f[x, y+1]', '{f.indexed: g.indexed}', 'g[x, y+1]'),
     ('cos(f)', '{cos: sin}', 'sin(f)'),
     ('cos(f + sin(g))', '{cos: sin, sin: cos}', 'sin(f + cos(g))'),
+    ('FIndexed(f.indexed, x, y)', '{x: 0}', 'FIndexed(f.indexed, 0, y)'),
 ])
 def test_uxreplace(expr, subs, expected):
     grid = Grid(shape=(4, 4))
