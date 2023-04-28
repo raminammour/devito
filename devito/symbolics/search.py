@@ -47,7 +47,7 @@ class Search(object):
         self.deep = deep
 
     def _next(self, expr):
-        if self.deep is True and expr.is_Indexed:
+        if self.deep and expr.is_Indexed:
             return expr.indices
         elif q_leaf(expr):
             return ()
@@ -109,7 +109,12 @@ def search(exprs, query, mode='unique', visit='dfs', deep=False):
 
     assert mode in Search.modes, "Unknown mode"
 
-    searcher = Search(query, mode, deep)
+    if isinstance(query, type):
+        Q = lambda obj: isinstance(obj, query)
+    else:
+        Q = query
+
+    searcher = Search(Q, mode, deep)
 
     found = Search.modes[mode]()
     for e in as_tuple(exprs):
