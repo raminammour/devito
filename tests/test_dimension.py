@@ -1382,6 +1382,8 @@ class TestConditionalDimension(object):
         iterations = [i for i in FindNodes(Iteration).visit(op) if i.dim is not time]
         assert all(i.is_Affine for i in iterations)
 
+    @switchconfig(condition=True, safe_math=True)
+    #@switchconfig(condition=False, safe_math=True)
     def test_sparse_time_function(self):
         nt = 20
 

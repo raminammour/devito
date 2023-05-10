@@ -240,7 +240,10 @@ class switchconfig(object):
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, condition=None, **kwargs):
+            if condition is False:
+                return
+
             previous = {}
             for k, v in self.params.items():
                 previous[k] = configuration[k]
