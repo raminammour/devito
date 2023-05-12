@@ -6,7 +6,7 @@ from devito.tools import DefaultOrderedDict, as_tuple, flatten, filter_sorted, s
 from devito.types import Dimension, Indirection, ModuloDimension, StencilDimension
 
 __all__ = ['AccessMode', 'Stencil', 'detect_accesses', 'detect_io', 'pull_dims',
-           'shift_back', 'sdims_min', 'sdims_max']
+           'shift_back', 'sdims_min', 'sdims_max', 'minmax_index']
 
 
 class AccessMode(object):
@@ -304,3 +304,18 @@ def sdims_max(expr):
         return expr
     mapper = {e: e._max for e in sdims}
     return expr.subs(mapper)
+
+
+def minmax_index(expr, d):
+    """
+    Return the minimum and maximum indices along the `d` Dimension
+    among all Indexeds in `expr`.
+    """
+    indices = set()
+    for i in retrieve_indexed(expr):
+        try:
+            indices.add(i.indices[d])
+        except KeyError:
+            pass
+
+    return min(indices), max(indices)
