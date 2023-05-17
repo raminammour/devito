@@ -58,7 +58,7 @@ export DEVITO_LOGGING=DEBUG
 cd benchmarks/user
 """  # noqa
     template_cmd = """\
-DEVITO_MPI=%(mpi)s mpiexec python benchmark.py bench -P %(problem)s -bm O2 -d %(shape)s -so %(space_order)s --tn %(tn)s -x 1 --arch %(arch)s -r %(resultsdir)s\
+DEVITO_MPI=%(mpi)s mpiexec python benchmark.py run -P %(problem)s -bm O2 -d %(shape)s -so %(space_order)s --tn %(tn)s -x 1 --arch %(arch)s -r %(resultsdir)s\
 """  # noqa
 
     # Generate one PBS file for each `np` value
