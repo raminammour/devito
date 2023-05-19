@@ -110,8 +110,10 @@ class AbstractSparseFunction(DiscreteFunction):
         else:
             if not isinstance(key, np.ndarray):
                 key = np.array(key)
-
-            n = key.ndim
+                # Correct for corner case of single coordinate
+                n = max(key.ndim, 2)
+            else:
+                n = key.ndim
             # Need to fix this check to get global npoint, global_shape broken
             # if shape[:n] != key.shape and self.distributor.nprocs == 1:
             #     raise ValueError("Incompatible shape `%s`; expected `%s`" %
@@ -125,7 +127,6 @@ class AbstractSparseFunction(DiscreteFunction):
 
         dimensions = dimensions[:n]
         shape = shape[:n]
-
         sf = SubFunction(
             name=name, parent=self, dtype=dtype, dimensions=dimensions,
             shape=shape, space_order=0, initializer=key, alias=self.alias,
@@ -1109,10 +1110,10 @@ class PrecomputedSparseFunction(AbstractSparseFunction):
 
     @property
     def gridpoints_data(self):
-        if self._gridpoints is None:
-            coord = self.coordinates.data._local - self.grid.origin
-            return (np.floor(coord) / self.grid.spacing).astype(int)
-        return self._gridpoints.data.view(np.ndarray)
+        try:
+            return self._gridpoints.data.view(np.ndarray)
+        except AttributeError:
+            return None
 
     @cached_property
     def coords_or_points(self):
@@ -1360,7 +1361,6 @@ class MatrixSparseTimeFunction(AbstractSparseTimeFunction):
 
         # Rows are locations, columns are source/receivers
         nloc, npoint = self.matrix.shape
-
         super().__init_finalize__(
             *args, **kwargs, npoint=npoint)
 
@@ -1545,6 +1545,8 @@ class MatrixSparseTimeFunction(AbstractSparseTimeFunction):
 
         self.scatter_result = None
         self.scattered_data = None
+
+    __distributor_setup__ = DiscreteFunction.__distributor_setup__
 
     @property
     def dt(self):

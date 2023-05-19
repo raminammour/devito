@@ -618,7 +618,8 @@ class TestCaching(object):
         u = SparseFunction(name='u', grid=grid, npoint=1, nt=10)
 
         # created: u, u(inds), p_u, h_p_u, u_coords, u_coords(inds), d, h_d
-        ncreated = 8
+        # i, h_i (extra dimension for precomputed created then dumped)
+        ncreated = 10
         assert len(_SymbolCache) == cur_cache_size + ncreated
 
         cur_cache_size = len(_SymbolCache)
