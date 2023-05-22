@@ -964,7 +964,7 @@ class AbstractFunction(sympy.Function, Basic, Cached, Pickable, Evaluable):
         f(x) : origin = 0
         f(x + hx/2) : origin = hx/2
         """
-        return DimensionTuple(*(r-d for d, r in zip(self.dimensions, self.indices_ref)),
+        return DimensionTuple(*(r - d for d, r in zip(self.dimensions, self.indices_ref)),
                               getters=self.dimensions)
 
     @property
@@ -1234,6 +1234,7 @@ class AbstractFunction(sympy.Function, Basic, Cached, Pickable, Evaluable):
                    zip(self.args, self.dimensions, self.origin, subs)]
         indices = [i.xreplace({k: sympy.Integer(k) for k in i.atoms(sympy.Float)})
                    for i in indices]
+
         return self.indexed[indices]
 
     def __getitem__(self, index):
