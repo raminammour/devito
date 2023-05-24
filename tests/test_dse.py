@@ -767,7 +767,7 @@ class TestAliases(object):
         """
         grid = Grid(shape=(8, 8, 8))
         x, y, z = grid.dimensions
-
+        # import pdb;pdb.set_trace()
         u = TimeFunction(name='u', grid=grid, space_order=4)
         u1 = TimeFunction(name="u1", grid=grid, space_order=4)
         u2 = TimeFunction(name="u2", grid=grid, space_order=4)
@@ -813,9 +813,9 @@ class TestAliases(object):
         assert str(op3) == str(op1)
 
         # Check numerical output
-        op0(time_M=1)
-        op1(time_M=1, u=u1)
-        op2(time_M=1, u=u2)
+        op0.apply(time_M=1)
+        op1.apply(time_M=1, u=u1)
+        op2.apply(time_M=1, u=u2)
         expected = norm(u)
         assert np.isclose(expected, norm(u1), rtol=1e-5)
         assert np.isclose(expected, norm(u2), rtol=1e-5)

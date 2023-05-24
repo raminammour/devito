@@ -44,6 +44,7 @@ class Parameters(OrderedDict, Signer):
 
     def _check_key_value(func):
         def wrapper(self, key, value):
+            # import pdb;pdb.set_trace()
             accepted = self._accepted[key]
             if accepted is not None:
                 tocheck = list(value) if isinstance(value, dict) else [value]
@@ -235,13 +236,15 @@ class switchconfig(object):
     Decorator to temporarily change `configuration` parameters.
     """
 
-    def __init__(self, **params):
+    def __init__(self, condition=None, **params):
+        # import pdb;pdb.set_trace()
+        self.condition = condition
         self.params = {k.replace('_', '-'): v for k, v in params.items()}
 
     def __call__(self, func, *args, **kwargs):
         @wraps(func)
-        def wrapper(*args, condition=None, **kwargs):
-            if condition is False:
+        def wrapper(*args, **kwargs):
+            if self.condition is False:
                 return
 
             previous = {}

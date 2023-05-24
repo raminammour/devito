@@ -70,6 +70,7 @@ def sum(f, dims=None):
     dims : Dimension or tuple of Dimension
         Dimensions to sum over.
     """
+    # import pdb;pdb.set_trace()
     dims = dv.tools.as_tuple(dims)
     if dims == () or dims == f.dimensions:
         return sumall(f)
