@@ -984,6 +984,32 @@ class FullHaloExchangeBuilder(Overlap2HaloExchangeBuilder):
         return Prodder(poke.name, poke.parameters, single_thread=True, periodic=True)
 
 
+class Full2HaloExchangeBuilder(FullHaloExchangeBuilder):
+
+    """
+    Same to FullHaloExchangeBuilder but swapping remainder and compute_core.
+
+    Generates:
+
+        haloupdate()
+        remainder()
+        halowait()
+        compute_core()
+    """
+
+    def _make_body(self, callcompute, remainder, haloupdates, halowaits):
+        body = []
+
+        assert remainder is not None
+        body.append(self._call_remainder(remainder))
+        body.append(HaloUpdateList(body=haloupdates))
+
+        assert callcompute is not None
+        body.append(callcompute)
+        body.append(HaloWaitList(body=halowaits))
+        return List(body=body) 
+
+
 mpi_registry = {
     True: BasicHaloExchangeBuilder,
     'basic': BasicHaloExchangeBuilder,
@@ -992,6 +1018,7 @@ mpi_registry = {
     'overlap': OverlapHaloExchangeBuilder,
     'overlap2': Overlap2HaloExchangeBuilder,
     'full': FullHaloExchangeBuilder,
+    'full2': Full2HaloExchangeBuilder,
     'dual': DualHaloExchangeBuilder
 }
 

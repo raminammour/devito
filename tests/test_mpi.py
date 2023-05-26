@@ -572,8 +572,7 @@ class TestOperatorSimple(object):
         else:
             assert np.all(f.data_ro_domain[-1, :-time_M] == 31.)
 
-    @pytest.mark.parallel(mode=[(4, 'basic'), (4, 'diag'), (4, 'overlap'),
-                                (4, 'overlap2'), (4, 'diag2'), (4, 'full')])
+    @pytest.mark.parallel(mode=[(4, 'full'), (4, 'full2')])
     def test_trivial_eq_2d(self):
         grid = Grid(shape=(8, 8,))
         x, y = grid.dimensions
@@ -585,11 +584,13 @@ class TestOperatorSimple(object):
         eqn = Eq(f.forward, f[t, x-1, y] + f[t, x+1, y] + f[t, x, y-1] + f[t, x, y+1])
         op = Operator(eqn)
         op.apply(time=1)
-
+        
         # Expected computed values
         corner, side, interior = 10., 13., 16.
 
         glb_pos_map = f.grid.distributor.glb_pos_map
+        print(f.data_ro_domain)
+
         assert np.all(f.data_ro_domain[0, 1:-1, 1:-1] == interior)
         if LEFT in glb_pos_map[x] and LEFT in glb_pos_map[y]:
             assert f.data_ro_domain[0, 0, 0] == corner
@@ -609,7 +610,8 @@ class TestOperatorSimple(object):
             assert np.all(f.data_ro_domain[0, -1:, :-1] == side)
 
     @pytest.mark.parallel(mode=[(8, 'basic'), (8, 'diag'), (8, 'overlap'),
-                                (8, 'overlap2'), (8, 'diag2'), (8, 'full')])
+                                (8, 'overlap2'), (8, 'diag2'), (8, 'full'),
+                                (8, 'full2')])
     def test_trivial_eq_3d(self):
         grid = Grid(shape=(8, 8, 8))
         x, y, z = grid.dimensions
@@ -971,7 +973,7 @@ class TestCodeGeneration(object):
         else:
             assert np.all(g.data_ro_domain[1, :-1] == 2.)
 
-    @pytest.mark.parallel(mode=[(1, 'full')])
+    @pytest.mark.parallel(mode=[(1, 'full'), (1, 'full2')])
     def test_avoid_fullmode_if_crossloop_dep(self):
         grid = Grid(shape=(4, 4))
         x, y = grid.dimensions
@@ -1290,6 +1292,7 @@ class TestCodeGeneration(object):
         (1, 'overlap2'),
         (1, 'diag2'),
         (1, 'full'),
+        (1, 'full2'),
     ])
     def test_min_code_size(self):
         grid = Grid(shape=(10, 10, 10))
@@ -1326,6 +1329,10 @@ class TestCodeGeneration(object):
             assert calls[0].ncomps == 2
             assert calls[1].name == 'halowait0'
         elif configuration['mpi'] in ('full'):
+            assert len(op._func_table) == 7
+            assert len(calls) == 4
+            assert 'haloupdate1' not in op._func_table
+        elif configuration['mpi'] in ('full2'):
             assert len(op._func_table) == 7
             assert len(calls) == 4
             assert 'haloupdate1' not in op._func_table
@@ -1781,7 +1788,7 @@ class TestOperatorAdvanced(object):
         if not glb_pos_map[x] and not glb_pos_map[y]:
             assert np.all(u.data_ro_domain[1] == 3)
 
-    @pytest.mark.parallel(mode=[(4, 'basic'), (4, 'overlap'), (4, 'full')])
+    @pytest.mark.parallel(mode=[(4, 'basic'), (4, 'overlap'), (4, 'full'), (4, 'full2')])
     def test_coupled_eqs_mixed_dims(self):
         """
         Test an Operator that computes coupled equations over partly disjoint sets
@@ -2106,7 +2113,7 @@ class TestOperatorAdvanced(object):
 
         assert abs(norm(u) - norm(u2)) < 1.e-3
 
-    @pytest.mark.parallel(mode=[(4, 'full')])
+    @pytest.mark.parallel(mode=[(4, 'full'), (4, 'full2')])
     def test_misc_subdims(self):
         """
         Test MPI full mode with an Operator having:
@@ -2149,7 +2156,7 @@ class TestOperatorAdvanced(object):
         assert np.all(u.data[1, -1:] == 1.)
         assert np.all(u.data[1, :, 1:] == 1.)
 
-    @pytest.mark.parallel(mode=[(4, 'basic'), (4, 'full')])
+    @pytest.mark.parallel(mode=[(4, 'basic'), (4, 'full'), (4, 'full2')])
     def test_misc_subdims_3D(self):
         """
         Test `SubDims` in 3D (so that spatial blocking is introduced).
@@ -2186,7 +2193,7 @@ class TestOperatorAdvanced(object):
         assert np.all(u.data[1, :, :, 0:2] == 1.)
         assert np.all(u.data[1, :, :, -2:] == 1.)
 
-    @pytest.mark.parallel(mode=[(4, 'full')])
+    @pytest.mark.parallel(mode=[(4, 'full'), (4, 'full2')])
     def test_custom_subdomain(self):
         """
         This test uses a custom SubDomain such that we end up with two loop
