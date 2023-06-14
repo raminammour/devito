@@ -121,9 +121,9 @@ class Differentiable(sympy.Expr, Evaluable):
         return self.func(*[getattr(a, '_eval_at', lambda x: a)(func) for a in self.args])
 
     def _subs(self, old, new, **hints):
-        if old is self:
+        if old == self:
             return new
-        if old is new:
+        if old == new:
             return self
         args = list(self.args)
         for i, arg in enumerate(args):
@@ -346,6 +346,10 @@ class DifferentiableOp(Differentiable):
         return obj
 
     def subs(self, *args, **kwargs):
+        if len(args) == 2:
+            old, new = args
+            if self == old:
+                return new
         return self.func(*[getattr(a, 'subs', lambda x: a)(*args, **kwargs)
                            for a in self.args], evaluate=False)
 
