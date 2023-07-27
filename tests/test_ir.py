@@ -2,9 +2,10 @@ import pytest
 import numpy as np
 from sympy import S
 
-from conftest import EVAL, skipif  # noqa
+from conftest import EVAL, skipif, assert_structure  # noqa
 from devito import (Eq, Inc, Grid, Constant, Function, TimeFunction, # noqa
-                    Operator, Dimension, SubDimension, switchconfig)
+                    Operator, Dimension, SubDimension, switchconfig,
+                    ConditionalDimension)
 from devito.ir.equations import LoweredEq
 from devito.ir.equations.algorithms import dimension_sort
 from devito.ir.iet import Iteration, FindNodes
@@ -976,6 +977,29 @@ class TestEquationAlgorithms(object):
         expr = eval(expr)
 
         assert list(dimension_sort(expr)) == eval(expected)
+
+    def test_dimension_sort_conditional(self):
+        grid = Grid(shape=(5, 5))
+        time = grid.time_dim
+        x, y = grid.dimensions
+        ct = ConditionalDimension(name="ct", parent=time, factor=2)
+
+        u = TimeFunction(name="u", grid=grid, time_order=1)
+        f = Function(name="f", grid=grid, space_order=0)
+        g = Function(name="g", grid=grid, space_order=0)
+        h = Function(name="h", grid=grid, space_order=0)
+
+        # this simulates a type of imaging condition.
+        # f*g should execute every snapshotted time step "ct"
+        eqs = [Eq(u.forward, u + 1.),
+               Eq(f, u.forward, implicit_dims=(ct,)),
+               Eq(g, u.forward, implicit_dims=(ct,)),
+               Eq(h, h+f*g, implicit_dims=(ct,))]
+        op = Operator(eqs)
+        assert list(dimension_sort(eqs[-1])) == [time, ct, x, y]
+        assert_structure(op, ['t,x,y', 't', 't,x,y'], 't,x,y,x,y')
+        op(time_M=5)
+        assert np.all(h.data == 35)
 
 
 class TestGuards(object):

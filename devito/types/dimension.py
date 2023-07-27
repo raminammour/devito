@@ -187,7 +187,11 @@ class Dimension(ArgProvider):
 
     @property
     def index(self):
-        return self if self.indirect is True else self.parent
+        return self.parent if self.indirect else self
+
+    @property
+    def notindex(self):
+        return self if self.indirect else getattr(self, 'parent', self)
 
     @property
     def is_const(self):

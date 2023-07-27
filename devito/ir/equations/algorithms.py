@@ -67,14 +67,19 @@ def dimension_sort(expr):
     # wrong; for example, in `((t, time), (t, x, y), (x, y))`, `x` could now
     # preceed `time`, while `t`, and therefore `time`, *must* appear before `x`,
     # as indicated by the second relation
-    implicit_relations = {(d.parent, d) for d in extra if d.is_Derived and not d.indirect}
+    implicit_relations = {(d.notindex, d) for d in extra}
 
     # 2) To handle cases such as `((time, xi), (x,))`, where `xi` a SubDimension
     # of `x`, besides `(x, xi)`, we also have to add `(time, x)` so that we
     # obtain the desired ordering `(time, x, xi)`. W/o `(time, x)`, the ordering
     # `(x, time, xi)` might be returned instead, which would be non-sense
-    implicit_relations.update({tuple(filter_ordered(d.root for d in i))
-                               for i in relations})
+    for i in relations:
+        dims = tuple(filter_ordered([di for d in i
+                                     for di in (d.notindex, d)]))
+        implicit_relations.update({dims})
+    # implicit_relations.update({tuple(filter_ordered([di for d in i
+    #                                                  for di in (d.index, d)]))
+    #                            for i in relations})
 
     ordering = PartialOrderTuple(extra, relations=(relations | implicit_relations))
 
